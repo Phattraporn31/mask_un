@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Image Classifier (Every 3 Seconds)</title>
+    <title>High-Performance AI Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
@@ -23,106 +23,140 @@
             border-radius: 20px;
             padding: 30px;
             width: 100%;
-            max-width: 800px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+            max-width: 850px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.4);
         }
         h2 {
             text-align: center;
             margin-top: 0;
             margin-bottom: 25px;
-            color: #3b82f6;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         .layout {
             display: grid;
             grid-template-columns: 1fr;
             gap: 25px;
         }
-        @media (min-width: 600px) {
-            .layout { grid-template-columns: 1fr 1fr; }
+        @media (min-width: 680px) {
+            .layout { grid-template-columns: 1.2fr 1fr; }
         }
         .view-box {
-            background-color: #0f172a;
-            border-radius: 12px;
-            padding: 15px;
+            background-color: #090d16;
+            border-radius: 16px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 250px;
+            min-height: 280px;
+            border: 1px solid #1e293b;
+        }
+        #webcam-container {
+            width: 100%;
+            max-width: 240px;
+            display: flex;
+            justify-content: center;
         }
         #webcam-container canvas {
-            border-radius: 8px;
-            max-width: 100%;
+            border-radius: 12px;
+            width: 100% !important;
             height: auto !important;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
         }
         .btn-start {
-            background-color: #2563eb;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
             color: white;
             border: none;
-            padding: 12px 30px;
+            padding: 14px 35px;
             font-size: 16px;
             font-weight: 500;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
             margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
-        .btn-start:hover { background-color: #1d4ed8; }
-        .btn-start:disabled { background-color: #475569; cursor: not-allowed; }
+        .btn-start:hover { 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+        }
+        .btn-start:disabled { background: #475569; cursor: not-allowed; transform: none; box-shadow: none; }
         
         .result-box {
             background-color: #151f32;
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #233149;
         }
         .class-row {
-            margin-bottom: 15px;
+            margin-bottom: 18px;
         }
         .class-label {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
             font-size: 14px;
         }
         .bar-bg {
-            background-color: #334155;
+            background-color: #0f172a;
             border-radius: 10px;
             height: 12px;
             overflow: hidden;
+            border: 1px solid #1e293b;
         }
         .bar-fill {
-            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            background: linear-gradient(90deg, #3b82f6, #10b981);
             height: 100%;
             width: 0%;
-            transition: width 0.3s ease;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .status-text {
-            font-size: 12px;
+        .status-badge {
+            font-size: 13px;
             color: #94a3b8;
-            margin-top: 10px;
-            text-align: center;
+            margin-top: 12px;
+            padding: 6px 12px;
+            background-color: #1e293b;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: #64748b;
+            border-radius: 50%;
+        }
+        .dot.active {
+            background-color: #10b981;
+            box-shadow: 0 0 8px #10b981;
         }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Teachable Machine Image Model</h2>
+    <h2>Teachable Machine AI Dashboard</h2>
     
     <div class="layout">
-        <!-- ฝั่งกล้อง -->
+        <!-- ฝั่งกล้องเว็บแคม (รันแบบ Smooth 60FPS) -->
         <div class="view-box">
             <div id="webcam-container"></div>
             <button type="button" class="btn-start" id="start-btn" onclick="init()">Start System</button>
-            <div id="status" class="status-text">กดปุ่มเพื่อเริ่มต้นใช้งาน</div>
+            <div class="status-badge">
+                <div class="dot" id="status-dot"></div>
+                <span id="status-text">ระบบปิดอยู่</span>
+            </div>
         </div>
 
-        <!-- ฝั่งแสดงผล -->
+        <!-- ฝั่งแสดงผล (อัปเดตทุกๆ 3 วินาที) -->
         <div class="result-box">
-            <h3 style="margin-top:0; font-size:16px; color:#94a3b8;">ผลการวิเคราะห์</h3>
+            <h3 style="margin-top:0; font-size:15px; color:#94a3b8; letter-spacing: 0.5px;">PREDICTION RESULTS (EVERY 3S)</h3>
             <div id="label-container">
-                <div style="color:#64748b; font-size:14px; text-align:center; padding-top:20px;">
-                    รอการเปิดระบบ...
+                <div style="color:#64748b; font-size:14px; text-align:center; padding-top:40px;">
+                    กรุณากดปุ่ม Start เพื่อเริ่มการทำโมเดล
                 </div>
             </div>
         </div>
@@ -136,17 +170,16 @@
     const URL = "https://teachablemachine.withgoogle.com/models/GwNdusUuF/";
     let model, webcam, labelContainer, maxPredictions;
     let isRunning = false;
-
-    // ฟังก์ชันช่วยหน่วงเวลา (Delay) เพื่อคุมเวลา 3 วินาที
-    const delay = ms => new Promise(res => setTimeout(res, ms));
+    let lastPredictTime = 0; // ตัวจับเวลาสำหรับควบคุมความถี่ของการทายผล
 
     async function init() {
         if(isRunning) return;
         isRunning = true;
         
-        document.getElementById("start-btn").disabled = true;
-        document.getElementById("start-btn").innerText = "Loading...";
-        document.getElementById("status").innerText = "กำลังโหลดโมเดลและเปิดกล้อง...";
+        const startBtn = document.getElementById("start-btn");
+        startBtn.disabled = true;
+        startBtn.innerText = "Loading AI...";
+        document.getElementById("status-text").innerText = "กำลังดาวน์โหลดโมเดล...";
 
         try {
             const modelURL = URL + "model.json";
@@ -160,22 +193,23 @@
             await webcam.setup(); 
             await webcam.play();
             
-            // ซ่อนปุ่มเมื่อรันสำเร็จ
-            document.getElementById("start-btn").style.display = "none";
-            document.getElementById("status").innerText = "ระบบทำงานแล้ว: กำลังประมวลผลทุก 3 วินาที";
+            // อัปเดตสถานะ UI
+            startBtn.style.display = "none";
+            document.getElementById("status-dot").classList.add("active");
+            document.getElementById("status-text").innerText = "ระบบกำลังทำงานออนไลน์";
 
             document.getElementById("webcam-container").appendChild(webcam.canvas);
             labelContainer = document.getElementById("label-container");
             
-            // สร้างโครงสร้าง Progress Bar รอไว้เลย
+            // Render โครงสร้าง Progress Bar รอไว้ล่วงหน้า
             labelContainer.innerHTML = "";
             for (let i = 0; i < maxPredictions; i++) {
                 const row = document.createElement("div");
                 row.className = "class-row";
                 row.innerHTML = `
                     <div class="class-label">
-                        <span id="name-${i}">รอผล...</span>
-                        <span id="percent-${i}" style="color:#60a5fa; font-weight:bold;">0%</span>
+                        <span id="name-${i}" style="font-weight:500;">กำลังคำนวณ...</span>
+                        <span id="percent-${i}" style="color:#10b981; font-weight:bold;">0%</span>
                     </div>
                     <div class="bar-bg">
                         <div class="bar-fill" id="bar-${i}"></div>
@@ -184,47 +218,58 @@
                 labelContainer.appendChild(row);
             }
 
-            // เริ่มต้นลูปการทำงานหลัก
-            runSystem();
+            // จุดเริ่มต้นลูปภาพ (เรียกใช้งานครั้งเดียว ลื่นไหลยาวๆ)
+            window.requestAnimationFrame(loop);
 
         } catch (e) {
             console.error(e);
-            alert("ไม่สามารถเปิดกล้องหรือโหลดโมเดลได้ (ตรวจสอบว่ารันบน HTTPS หรือ localhost)");
-            document.getElementById("start-btn").disabled = false;
-            document.getElementById("start-btn").innerText = "Start System";
+            alert("เกิดข้อผิดพลาดในการเข้าถึงกล้องเว็บแคม หรือ สัญญาณเครือข่ายหลุด");
+            startBtn.disabled = false;
+            startBtn.innerText = "Start System";
             isRunning = false;
         }
     }
 
-    // ลูปหลักคุมการทำงานของระบบ
-    async function runSystem() {
-        while (isRunning) {
-            // 1. อัปเดตเฟรมภาพกล้องเว็บแคม
-            webcam.update();
-            
-            // 2. ส่งภาพไปทายผล
+    // ลูปหลัก 60 FPS (ใช้สำหรับอัปเดตภาพหน้าจอกล้องไม่ให้กระตุก)
+    async function loop(timestamp) {
+        if (!isRunning) return;
+        
+        // 1. ให้กล้องดึงภาพและแสดงผลบน Canvas แบบ Real-time ตลอดเวลา (แก้ปัญหากล้องกระตุก)
+        webcam.update();
+        
+        // 2. ตรวจสอบเวลา: ถ้าผ่านไปครบ 3000ms (3 วินาที) จึงจะส่งไปให้ AI ประมวลผล 1 ครั้ง
+        if (!lastPredictTime || timestamp - lastPredictTime >= 3000) {
+            lastPredictTime = timestamp;
             await predict();
-            
-            // 3. 🌟 หน่วงเวลา 3 วินาที (3000 มิลลิวินาที) ก่อนจะเริ่มทายผลรอบถัดไป
-            await delay(3000);
         }
+        
+        // วนลูปแอนิเมชันต่อไป
+        window.requestAnimationFrame(loop);
     }
 
+    // ฟังก์ชันสั่งประมวลผลรูปภาพแบบความเร็วสูง ปลอดภัยต่อหน่วยความจำ
     async function predict() {
-        // ครอบ tf.tidy() เพื่อประสิทธิภาพการเคลียร์ Ram ของตัวบราวเซอร์
-        await tf.tidy(async () => {
+        if (!model || !webcam) return;
+
+        // ใช้ startScope และ endScope เพื่อจัดการหน่วยความจำสำหรับฟังก์ชันที่เป็น Async
+        tf.engine().startScope();
+        try {
             const prediction = await model.predict(webcam.canvas);
             for (let i = 0; i < maxPredictions; i++) {
                 const className = prediction[i].className;
                 const prob = prediction[i].probability;
                 const pct = Math.round(prob * 100);
 
-                // แสดงข้อมูลลงในหน้าจอที่ออกแบบไว้
+                // พ่นข้อมูลลง Element เพื่อแสดงผล
                 document.getElementById(`name-${i}`).innerText = className;
                 document.getElementById(`percent-${i}`).innerText = pct + "%";
                 document.getElementById(`bar-${i}`).style.width = pct + "%";
             }
-        });
+        } catch (error) {
+            console.error("Prediction error:", error);
+        } finally {
+            tf.engine().endScope(); // คืนแรมทั้งหมดที่ TensorFlow.js ดึงไปใช้ในรอบนั้นๆ ทันที
+        }
     }
 </script>
 </body>
